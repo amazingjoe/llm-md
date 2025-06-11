@@ -32,11 +32,9 @@ def test_template_parsing() -> None:
     template = """
 - Basic Information
 
-### Title [1] $ | Generate an engaging and marketable book title
-
-### Premise [1] $ | Write a compelling 2-3 sentence premise that captures the book's main concept
-
-### Genre [1] $ | Primary genre classification
+## Title [1] $ | Generate an engaging and marketable book title
+## Premise [1] $ | Write a compelling 2-3 sentence premise that captures the book's main concept
+## Genre [1] $ | Primary genre classification
 
 - Characters
 
