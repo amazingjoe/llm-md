@@ -1,104 +1,176 @@
 # LLM-MD Parser
 
-A Python library for parsing structured markdown templates into dynamic worksheets, designed for content creation workflows with LLMs (Large Language Models).
+<img src="https://futurefictionpress.com/wp-content/uploads/2024/07/FFP-Logo-Horizontal-2048x299.jpg" alt="Future Fiction Press" width="400">
 
-## Overview
-
-LLM-MD Parser transforms template files with special markdown syntax into structured worksheets that can be filled out and parsed back into structured data. It's particularly useful for content planning, creative writing, project management, and any scenario where you need to generate structured forms from templates.
+A powerful Python parser for LLM-MD (Large Language Model Markdown) templates that generates structured worksheets and extracts content from completed worksheets.
 
 ## Features
 
-- **Template-to-Worksheet Generation**: Convert structured templates into fillable worksheets
-- **Dynamic Cardinality**: Control how many instances of each section are generated
-- **Section-Specific Generation**: Generate only specific parts of a template
-- **Worksheet Parsing**: Extract structured data from completed worksheets
-- **Hierarchical Structure Support**: Handle nested sections and fields
-- **Flexible Field Types**: Support for required fields, optional fields, and range-based quantities
+- **Template Parsing**: Convert LLM-MD templates into structured worksheets
+- **Section Generation**: Generate specific sections or complete worksheets
+- **Content Extraction**: Parse completed worksheets and extract sections/fields
+- **Flexible Cardinality**: Support for fixed counts, ranges, and unlimited arrays
+- **Hierarchical Structure**: Handle nested content with proper markdown formatting
 
-## Quick Start
+## Installation
 
-### Basic Usage
+Simply download `llm-md-parser.py` and import it into your Python project:
 
 ```python
-import importlib
-llm_md_parser = importlib.import_module('llm-md-parser')
-
-# Define a template
-template = """
-- Basic Information
-
-### Title [1] $ | Project title
-### Description [1] | Project description
-
-- Tasks
-
-# Task List [1] | Container for tasks
-## Task [*] | Individual task items
-### Name [1] $ | Task name
-### Priority [1] | Task priority level
-### Status [1] | Current status
-"""
-
-# Generate a worksheet with 3 tasks
-result = llm_md_parser.parse_llm_md(
-    template, 
-    quantities={"Task List.Task": 3}
-)
-print(result)
+from llm_md_parser import parse_llm_md, parse_worksheet_content, get_section_content
 ```
 
-### Advanced Example
+## Template Format
 
-See `test.py` for a comprehensive book planning example with characters, chapters, and detailed content structure.
+LLM-MD templates use a specific syntax:
 
-## Template Syntax
-
-### Worksheet Sections
-Define major sections with a dash prefix:
-```markdown
+### Section Separators
+```
 - Section Name
 ```
+Creates worksheet sections with H1 headers and horizontal rules.
 
-### Headers and Fields
-Use standard markdown headers with special syntax:
-```markdown
-### Field Name [cardinality] $ | notes
+### Headers
+```
+# Title [cardinality] $ | notes
+## Subtitle [cardinality] | notes
+### Field [cardinality] $ | notes
 ```
 
-- **Field Name**: The display name for the field
-- **[cardinality]**: Controls how many instances are generated
-- **$**: Marks the field as required
-- **| notes**: Optional description or instructions
+- **cardinality**: `[1]` (fixed), `[*]` (unlimited), `[2-5]` (range)
+- **$**: Marks required fields
+- **|**: Separates field name from notes/instructions
 
-### Cardinality Options
+## Usage Examples
 
-| Syntax | Description | Default Behavior |
-|--------|-------------|------------------|
-| `[1]` | Exactly one instance | Single field |
-| `[*]` | Unlimited instances | 2 instances |
-| `[3-5]` | Range of instances | Minimum value (3) |
-| `[3]` | Fixed number | Exactly 3 instances |
+### Basic Template Generation
 
-### Example Template Structure
+```python
+from llm_md_parser import parse_llm_md
 
+template = """- Basic Information
+
+# Title [1] $ | Generate an engaging book title
+# Premise [1] $ | Write a compelling premise
+
+- Characters
+
+# Characters [1] | Character section container
+## Character [*] | Create compelling characters
+### Name [1] $ | Character name
+### Age [1] | Character age
+### Background [1] | Character background story"""
+
+# Generate complete worksheet
+worksheet = parse_llm_md(template, quantities={"Characters.Character": 3})
+print(worksheet)
+```
+
+**Output:**
 ```markdown
-- Project Planning
+# Basic Information
+---
+## Title | 
 
-### Project Name [1] $ | Enter a descriptive project name
+## Premise | 
 
-# Team [1] | Team member information
-## Member [*] | Individual team members
-### Name [1] $ | Full name
-### Role [1] | Job title or role
-### Skills [2-4] | Key skills or expertise areas
+# Characters
+---
+## Characters
+### Character
+#### Name | 
 
-- Timeline
+#### Age | 
 
-# Phases [1] | Project phases
-## Phase [3] | Three main phases
-### Name [1] $ | Phase name
-### Duration [1] | Time estimate
-### Deliverables [2-5] | Expected outputs
+#### Background | 
+
+### Character
+#### Name | 
+
+#### Age | 
+
+#### Background | 
+
+### Character
+#### Name | 
+
+#### Age | 
+
+#### Background | 
+```
+
+### Section-Specific Generation
+
+```python
+# Generate only the Characters section
+characters_section = parse_llm_md(template, section="Characters", quantities={"Characters.Character": 2})
+print(characters_section)
+```
+
+### Parsing Completed Worksheets
+
+```python
+from llm_md_parser import parse_worksheet_content, get_section_content, get_section_fields
+
+# Assume you have a completed worksheet
+completed_worksheet = """# Basic Information
+---
+## Title | 
+The Great Adventure
+
+## Premise | 
+A young hero discovers a magical world hidden beneath their hometown.
+
+# Characters
+---
+## Characters
+### Character
+#### Name | 
+Alex Thompson
+
+#### Age | 
+16
+
+#### Background | 
+A curious teenager who loves exploring abandoned places."""
+
+# Parse all sections
+sections = parse_worksheet_content(completed_worksheet)
+print("Available sections:", list(sections.keys()))
+
+# Get specific section content
+basic_info = get_section_content(completed_worksheet, "Basic Information")
+print("Basic Information section:")
+print(basic_info)
+
+# Get individual fields from a section
+basic_fields = get_section_fields(completed_worksheet, "Basic Information")
+print("Title:", basic_fields.get("Title", ""))
+print("Premise:", basic_fields.get("Premise", ""))
+```
+
+### Advanced Template with Ranges
+
+```python
+template = """- Story Structure
+
+# Outline [1] | Chapter outline container
+## Chapter [3-8] | Detailed chapter information
+### Title [1] $ | Chapter title
+### Summary [1] $ | Chapter summary
+### Word Count [1] | Target word count
+
+- Character Development
+
+# Protagonist [1] $ | Main character details
+## Traits [*] | Character traits
+### Trait [1] $ | Individual trait description"""
+
+# Generate with specific quantities
+result = parse_llm_md(template, quantities={
+    "Outline.Chapter": 5,
+    "Protagonist.Traits.Trait": 4
+})
 ```
 
 ## API Reference
@@ -106,169 +178,67 @@ Use standard markdown headers with special syntax:
 ### Core Functions
 
 #### `parse_llm_md(template, section=None, quantities=None)`
-Generate a worksheet from a template.
+Generate worksheet from LLM-MD template.
 
 **Parameters:**
-- `template` (str): The LLM-MD template string
-- `section` (str, optional): Generate only this section
-- `quantities` (dict, optional): Override default quantities for fields
+- `template` (str): LLM-MD template string
+- `section` (str, optional): Generate only specified section
+- `quantities` (dict, optional): Override cardinality for specific paths
 
 **Returns:** Generated worksheet as markdown string
 
-**Example:**
-```python
-result = llm_md_parser.parse_llm_md(
-    template,
-    section="Characters",
-    quantities={"Characters.Character": 5}
-)
-```
-
 #### `parse_worksheet_content(worksheet_content, section_name=None)`
-Parse completed worksheet content into structured data.
+Parse completed worksheet and extract structured data.
 
 **Parameters:**
 - `worksheet_content` (str): Completed worksheet markdown
-- `section_name` (str, optional): Extract only this section
+- `section_name` (str, optional): Extract only specified section
 
-**Returns:** Dictionary with section data and field values
+**Returns:** Dictionary with section data
 
 #### `get_section_content(worksheet_content, section_name)`
-Extract the full content of a specific section.
+Extract full content of a specific section.
+
+**Parameters:**
+- `worksheet_content` (str): Completed worksheet markdown
+- `section_name` (str): Name of section to extract
 
 **Returns:** Section content as string
 
 #### `get_section_fields(worksheet_content, section_name)`
-Extract field values from a specific section.
+Extract individual fields from a section.
 
-**Returns:** Dictionary mapping field names to values
+**Parameters:**
+- `worksheet_content` (str): Completed worksheet markdown
+- `section_name` (str): Name of section to extract
 
-## Use Cases
+**Returns:** Dictionary mapping field names to content
 
-### Creative Writing
-- **Book Planning**: Characters, plot outlines, chapter summaries
-- **Screenplay Development**: Scene breakdowns, character arcs
-- **World Building**: Locations, cultures, histories
-
-### Project Management
-- **Project Planning**: Tasks, milestones, team assignments
-- **Requirements Gathering**: Features, specifications, acceptance criteria
-- **Meeting Planning**: Agendas, action items, participants
-
-### Content Creation
-- **Course Development**: Modules, lessons, assessments
-- **Marketing Campaigns**: Channels, messaging, timelines
-- **Product Planning**: Features, user stories, roadmaps
-
-## Installation
-
-Currently, the parser is a single Python file. Simply download `llm-md-parser.py` and import it into your project:
+## Cardinality Examples
 
 ```python
-import importlib
-llm_md_parser = importlib.import_module('llm-md-parser')
+# Fixed count
+"# Chapter [3]"  # Exactly 3 chapters
+
+# Range
+"# Character [2-5]"  # Between 2 and 5 characters
+
+# Unlimited (with default)
+"# Scene [*]"  # Unlimited scenes (defaults to 2)
+
+# Override with quantities
+quantities = {"Story.Chapter": 8, "Characters.Character": 4}
 ```
 
-### Requirements
+## Requirements
+
 - Python 3.6+
 - No external dependencies (uses only standard library)
 
-## Testing
-
-Run the comprehensive test suite:
-
-```bash
-python3 test.py
-```
-
-The test suite includes:
-- Template parsing demonstrations
-- Section-specific generation examples
-- Worksheet content parsing
-- Error handling verification
-- Realistic book planning scenario
-
-## Examples
-
-### Simple Task List
-
-**Template:**
-```markdown
-- Tasks
-## Task [*] | Task items
-### Description [1] $ | What needs to be done
-### Priority [1] | High, Medium, or Low
-```
-
-**Generated Worksheet:**
-```markdown
-# Tasks
----
-## Task
-### Description | 
-### Priority | 
-## Task
-### Description | 
-### Priority | 
-```
-
-### Character Development
-
-**Template:**
-```markdown
-- Characters
-# Character Profiles [1]
-## Character [*] | Main characters
-### Name [1] $ | Character name
-### Age [1] | Character age
-### Background [1] | Character history
-### Goals [2-3] | Character motivations
-```
-
-**Usage:**
-```python
-characters = llm_md_parser.parse_llm_md(
-    template,
-    section="Characters",
-    quantities={"Character Profiles.Character": 4}
-)
-```
-
-## Contributing
-
-This is a single-file Python library focused on simplicity and functionality. Contributions are welcome for:
-
-- Bug fixes and improvements
-- Additional template syntax features
-- Performance optimizations
-- Documentation enhancements
-
 ## License
 
-This project is available under the MIT License. See the full license text below:
+This project is presented by Future Fiction Press.
 
-```
-MIT License
+---
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## Support
-
-For questions, issues, or feature requests, please create an issue in the project repository.
+© 2024 Future Fiction Press. All rights reserved.

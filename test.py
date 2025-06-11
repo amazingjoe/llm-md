@@ -6,14 +6,8 @@ This module demonstrates the functionality of the LLM-MD parser with comprehensi
 
 import importlib
 import sys
-from typing import Dict, Any
-
-# Import the parser module
-try:
-    llm_md_parser = importlib.import_module('llm-md-parser')
-except ImportError as e:
-    print(f"Error importing llm-md-parser: {e}")
-    sys.exit(1)
+from typing import Dict, Any# Import the parser module
+import llm_md_parser
 
 
 def print_section_header(title: str) -> None:
