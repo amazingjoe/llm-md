@@ -70,33 +70,27 @@ print(worksheet)
 ```markdown
 # Basic Information
 ---
-## Title | 
+# Title | 
 
-## Premise | 
+# Premise | 
+
 
 # Characters
 ---
-## Characters
-### Character
-#### Name | 
+# Characters
 
-#### Age | 
-
-#### Background | 
-
-### Character
-#### Name | 
-
-#### Age | 
-
-#### Background | 
-
-### Character
-#### Name | 
-
-#### Age | 
-
-#### Background | 
+## Character
+### Name | 
+### Age | 
+### Background | 
+## Character
+### Name | 
+### Age | 
+### Background | 
+## Character
+### Name | 
+### Age | 
+### Background | 
 ```
 
 ### Section-Specific Generation
@@ -105,6 +99,17 @@ print(worksheet)
 # Generate only the Characters section
 characters_section = parse_llm_md(template, section="Characters", quantities={"Characters.Character": 2})
 print(characters_section)
+```
+
+**Output:**
+```markdown
+# Characters | 
+
+## Character | 
+## Character | 
+### Name | 
+### Age | 
+### Background | 
 ```
 
 ### Parsing Completed Worksheets
@@ -149,6 +154,25 @@ print("Title:", basic_fields.get("Title", ""))
 print("Premise:", basic_fields.get("Premise", ""))
 ```
 
+**Output:**
+```
+Available sections: ['Basic Information', 'Characters']
+
+Basic Information section:
+# Basic Information
+---
+## Title |
+The Great Adventure
+
+## Premise |
+A young hero discovers a magical world hidden beneath their hometown.
+
+
+Basic Information fields:
+  Title: 'The Great Adventure'
+  Premise: 'A young hero discovers a magical world hidden beneath their hometown.'
+```
+
 ### Advanced Template with Ranges
 
 ```python
@@ -171,6 +195,44 @@ result = parse_llm_md(template, quantities={
     "Outline.Chapter": 5,
     "Protagonist.Traits.Trait": 4
 })
+print(result)
+```
+
+**Output:**
+```markdown
+# Story Structure
+---
+# Outline
+
+## Chapter 1
+### Title | 
+### Summary | 
+### Word Count | 
+## Chapter 2
+### Title | 
+### Summary | 
+### Word Count | 
+## Chapter 3
+### Title | 
+### Summary | 
+### Word Count | 
+## Chapter 4
+### Title | 
+### Summary | 
+### Word Count | 
+## Chapter 5
+### Title | 
+### Summary | 
+### Word Count | 
+
+# Character Development
+---
+# Protagonist
+
+## Traits
+### Trait | 
+## Traits
+### Trait | 
 ```
 
 ## API Reference
